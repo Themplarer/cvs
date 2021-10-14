@@ -10,12 +10,11 @@ class CommitObject:
         self.content = content
         self.prev_commits = prev_commits
         self.time = datetime.now()
-        self.hash = hash(frozenset(content)) % (10 ** 10)
-        # main()
+        self.hash = (hash(frozenset(content)) + hash(message)) % (10 ** 10)
 
     def __str__(self):
         return f'["{self.message}" "{self.author}" "{self.hash}" ' \
-               f'"{" ".join(self.prev_commits)}"]'
+               f'"{self.prev_commits if self.prev_commits else ""}"]'
 
     @staticmethod
     def parse(string):

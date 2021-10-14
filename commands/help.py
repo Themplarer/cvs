@@ -12,11 +12,9 @@ class Help(Command):
     TODO: write short explanation of commands'''
 
     def parse_args(self, args):
-        args_count = len(args)
-        if args_count > 1:
+        if len(args) > 1:
             raise ArgsParseError
-        res = {'command': i for i in args}
-        return res
+        return {'command': i for i in args}
 
     def execute(self, caller, args):
         print('ye i\'ll help u')

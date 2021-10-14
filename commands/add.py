@@ -1,12 +1,13 @@
-import pathlib
+import glob
+import os
 import re
+
 from argsparseerror import ArgsParseError
 from commands.command import Command
 
 
 class Add(Command):
-    # todo refactor all
-    # todo переделать проверку файлов на включение в список
+    _comments = re.compile(r'^(#.*)| $')
 
     help_string = '''Usage: python ./main.py add [path]
     path - kind of filter for directories and files, compulsory argument
@@ -14,42 +15,41 @@ class Add(Command):
     Adds specified files and directories to the index'''
 
     def parse_args(self, args):
-        res = dict()
-        if len(args) == 0:
+        if len(args) != 1:
             raise ArgsParseError
-        res['path'] = args[0]
-        return res
-
-    _comments = re.compile(r'^(#.*)| $')
-
-    def _ignore(self, ignore_set, x):
-        res = [re.compile(i.replace('\\', '/')) for i in ignore_set]
-        return list(filter(lambda s: self._filter(s, res),
-                           map(lambda i: str(i).replace('\\', '/'), x)))
+        return {'path': args[0]}
 
     @staticmethod
-    def _filter(s, res):
-        for i in res:
-            if i.match(s):
-                return False
+    def _filter(files, reg_exps):
+        for i in files:
+            if os.path.exists(i) and os.path.isfile(i):
+                res = False
+                for j in reg_exps:
+                    res = res or j.match(i)
 
-        return True
+                if not res:
+                    yield i
+
+    @staticmethod
+    def _to_ignore_regexp(s):
+        return re.compile(s.replace('\\', '/').replace('*', '.*') + '.*')
 
     def execute(self, caller, args):
+        _comments = re.compile(r'^(#.*|)$')
+        ignore_set = set()
         with open('.gitignore') as f:
-            ignore_set = {i.replace('\\', '/').replace('*', '.*') + '.*' for i
-                          in (filter(
-                    lambda x: not len(x) == 0 and not self._comments.match(x),
-                    f.read().splitlines()))}
+            for line in f.read().splitlines():
+                if not _comments.match(line):
+                    ignore_set.add(self._to_ignore_regexp(line))
 
-        _path = pathlib.Path(args['path'])
-        _f = [_path] if _path.is_file() else list(filter(lambda x: x.is_file(), _path.rglob('*')))
-        files = {str(i) for i in self._ignore(ignore_set, _f)}
+        with open(caller.dir_path + '/index') as f:
+            files = set(f.read().splitlines())
 
-        with open(caller.dir_path + 'index') as f:
-            files = files.union(set(f.read().splitlines()))
+        for i in glob.iglob(args['path'], recursive=True):
+            files.add(i)
 
-        with open(caller.dir_path + 'index', 'w') as f:
+        files = self._filter(files, ignore_set)
+        with open(caller.dir_path + '/index', 'w') as f:
             f.writelines('\n'.join(files))
 
         print('added')

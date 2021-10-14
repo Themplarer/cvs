@@ -5,6 +5,7 @@ import shutil
 from argsparseerror import ArgsParseError
 from commands.command import Command
 from commitobject import CommitObject
+from utils import create_file
 
 
 class Commit(Command):
@@ -16,20 +17,17 @@ class Commit(Command):
     def parse_args(self, args):
         if len(args) != 1:
             raise ArgsParseError
-        return {'message': i for i in args}
+        return {'message': args[0]}
 
     def execute(self, caller, args):
-        prev_commit_str = caller.branches['head']
-        prev_commit = CommitObject.parse(prev_commit_str)\
-            if prev_commit_str else None
-        # changed_files = list()
+        prev_commit = caller.branches['head']
         with open('./.goodgit/index') as f:
             indexed_files = f.read().splitlines()
 
         commit = CommitObject(args['message'], caller.author,
                               indexed_files, prev_commit)
 
-        path = f'{caller.dir_path}commits/{commit.hash}'
+        path = f'{caller.dir_path}/commits/{commit.hash}'
         os.mkdir(path)
         for i in indexed_files:
             dest = f'{path}/{i}'
@@ -39,11 +37,16 @@ class Commit(Command):
         with open('./.goodgit/main') as f:
             content = f.read()
 
+        content = re.sub(rf'{caller.selected_branch}:.*',
+                         f'{caller.selected_branch}:{commit.hash}', content)
         content = re.sub(r'head:.*\n', f'head:{commit.hash}\n', content)
 
         with open('./.goodgit/main', 'w') as f:
             f.write(content)
 
-        open('./.goodgit/index', 'w').close()
+        create_file('./.goodgit/index')
+
+        with open(path + '_info', 'w') as f:
+            f.write(str(commit))
 
         print(commit.hash)

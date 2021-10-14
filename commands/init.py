@@ -20,9 +20,10 @@ class Init(Command):
 
         os.mkdir(caller.dir_path)
         os.chdir(caller.dir_path)
-        os.mkdir('./commits/')
+        os.mkdir('./commits')
         create_file('index')
 
         with open('main', 'w') as f:
-            f.write('KHOROSHiy_git v.1.0\n__________\nhead:\nmaster:')
+            f.write('''KHOROSHiy_git v.1.0\n__________
+master|\n__________\nhead:\nmaster:''')
         print('initiated')
