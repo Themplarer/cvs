@@ -10,6 +10,7 @@ from commands.checkout import Checkout
 from commands.commit import Commit
 from commands.help import Help
 from commands.init import Init
+from commitobject import CommitObject
 
 
 class Main:
@@ -26,6 +27,15 @@ class Main:
         return os.path.exists(self.dir_path) and \
                os.path.exists(self.dir_path + '/main')
 
+    def get_commit(self, commit_hash):
+        if not commit_hash:
+            return None
+
+        with open(f'{self.dir_path}/commits/{commit_hash}_info') as f:
+            s = f.readline()
+
+        return CommitObject.parse(s, self)
+
     def _fill_branches(self):
         with open(self.dir_path + '/main') as f:
             for line in f:
@@ -33,7 +43,8 @@ class Main:
                 if match:
                     self.branches[match.group(1)] = None
                     if len(match.groups()) == 2:
-                        self.branches[match.group(1)] = match.group(2)
+                        self.branches[match.group(1)] = self.get_commit(
+                            match.group(2))
                 else:
                     match = self._selected_branch.match(line)
 

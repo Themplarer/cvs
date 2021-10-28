@@ -1,11 +1,17 @@
+import glob
 import os
 import re
-import shutil
 
+import utils
 from argsparseerror import ArgsParseError
 from commands.command import Command
 from commitobject import CommitObject
-from utils import create_file
+from diff_finder import write_diffs
+from utils import create_file, read_file
+
+
+def _to_list(elem):
+    return [elem] if elem else []
 
 
 class Commit(Command):
@@ -24,18 +30,22 @@ class Commit(Command):
         with open('./.goodgit/index') as f:
             indexed_files = f.read().splitlines()
 
+        if len(indexed_files) == 0:
+            print('nothing to commit!')
+            return
+
         commit = CommitObject(args['message'], caller.author,
-                              indexed_files, prev_commit)
+                              indexed_files, _to_list(prev_commit))
 
         path = f'{caller.dir_path}/commits/{commit.hash}'
         os.mkdir(path)
-        for i in indexed_files:
-            dest = f'{path}/{i}'
-            os.makedirs(os.path.dirname(dest), exist_ok=True)
-            shutil.copy2(i, dest)
+        write_diffs(prev_commit, indexed_files, path)
 
         with open('./.goodgit/main') as f:
             content = f.read()
+
+        with open(path + '_info', 'w') as f:
+            f.write(str(commit))
 
         content = re.sub(rf'{caller.selected_branch}:.*',
                          f'{caller.selected_branch}:{commit.hash}', content)
@@ -45,8 +55,5 @@ class Commit(Command):
             f.write(content)
 
         create_file('./.goodgit/index')
-
-        with open(path + '_info', 'w') as f:
-            f.write(str(commit))
 
         print(commit.hash)
