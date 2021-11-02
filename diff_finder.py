@@ -12,7 +12,7 @@ _lines_regexp = re.compile(r'@@ -(\d+),(\d+) \+.* @@')
 
 def _remove_endlines(array):
     for i in array:
-        yield i.strip()
+        yield i.strip('\n')
 
 
 def write_diffs(last_commit, files_after, result_dir):
@@ -30,6 +30,7 @@ def write_diffs(last_commit, files_after, result_dir):
             file = result_dir + '/' + file
             if '/' in file:
                 os.makedirs(os.path.dirname(file), exist_ok=True)
+
             with open(file, 'w') as f:
                 f.writelines(lines)
 
@@ -43,7 +44,7 @@ def restore_state(commit):
         res = restore_state(commit.prev_commits[0])
 
     for i in utils.get_files_recursively([],
-                                         f'./.goodgit/commits/{commit.hash}/**'):
+                                         f'./.goodgit/commits/{commit.hash}'):
         path = _path_regexp.match(i).group(1)
         res[path] = merge_file(res[path], read_file(i))
     return res
@@ -54,7 +55,7 @@ def merge_file(file, diff):
     line_pointer = 1
 
     for i in diff:
-        if i != '---' and i != '+++':
+        if i != '--- ' and i != '+++ ':
             match = _lines_regexp.match(i)
 
             if match:
@@ -66,7 +67,7 @@ def merge_file(file, diff):
             else:
                 line = i
                 if len(i) == 0 or i[0] != '-':
-                    if len(i) > 0 and i[0] == '+':
+                    if len(i) > 0:
                         line = line[1:]
 
                     new_file.append(line)

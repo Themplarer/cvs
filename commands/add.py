@@ -33,8 +33,7 @@ class Add(Command):
         with open(caller.dir_path + '/index') as f:
             files = set(f.read().splitlines())
 
-        files = set(
-            utils.get_files_recursively(files, args['path'], ignore_set))
+        files = utils.get_files_recursively(files, args['path'], ignore_set)
         with open(caller.dir_path + '/index', 'w') as f:
             f.writelines('\n'.join(files))
 

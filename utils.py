@@ -25,9 +25,12 @@ def _filter(it, filter_reg_exps):
 
 
 def get_files_recursively(initials, path, filter_reg_exps=None):
+    res = set()
     if not filter_reg_exps:
         filter_reg_exps = []
 
-    yield from _filter(initials, filter_reg_exps)
-    yield from _filter(glob.iglob(path + '/**', recursive=True),
-                       filter_reg_exps)
+    res = res.union(_filter(initials, filter_reg_exps))
+    res = res.union(_filter(glob.iglob(path + '/**', recursive=True),
+                            filter_reg_exps))
+
+    return res
