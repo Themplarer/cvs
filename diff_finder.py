@@ -21,7 +21,7 @@ def write_diffs(last_commit, files_after, result_dir):
         files_before_dict = restore_state(last_commit)
 
     for file in files_after:
-        before = files_before_dict[file] if file in files_before_dict else []
+        before = files_before_dict[file]
         after = read_file(file)
         diff = _remove_endlines(unified_diff(before, after))
         lines = '\n'.join(diff)
@@ -43,8 +43,7 @@ def restore_state(commit):
     if commit.prev_commits:
         res = restore_state(commit.prev_commits[0])
 
-    for i in utils.get_files_recursively([],
-                                         f'./.goodgit/commits/{commit.hash}'):
+    for i in utils.get_files_recursively(f'./.goodgit/commits/{commit.hash}'):
         path = _path_regexp.match(i).group(1)
         res[path] = merge_file(res[path], read_file(i))
     return res

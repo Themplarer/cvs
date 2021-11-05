@@ -18,22 +18,18 @@ class Add(Command):
             raise ArgsParseError
         return {'path': args[0]}
 
-    @staticmethod
-    def _to_ignore_regexp(s):
-        return re.compile(s.replace('\\', '/').replace('*', '.*') + '.*')
-
     def execute(self, caller, args):
         _comments = re.compile(r'^(#.*|)$')
-        ignore_set = set()
+        ignore_paths = set()
         with open('.gitignore') as f:
             for line in f.read().splitlines():
                 if not _comments.match(line):
-                    ignore_set.add(self._to_ignore_regexp(line))
+                    ignore_paths.add(line)
 
         with open(caller.dir_path + '/index') as f:
             files = set(f.read().splitlines())
 
-        files = utils.get_files_recursively(files, args['path'], ignore_set)
+        files = utils.get_files_recursively(args['path'], files, ignore_paths)
         with open(caller.dir_path + '/index', 'w') as f:
             f.writelines('\n'.join(files))
 

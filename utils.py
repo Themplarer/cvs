@@ -13,24 +13,21 @@ def read_file(path):
     return res
 
 
-def _filter(it, filter_reg_exps):
+def _filter(it):
     for i in it:
         if os.path.exists(i) and os.path.isfile(i):
-            res = False
-            for j in filter_reg_exps:
-                res = res or j.match(i)
-
-            if not res:
-                yield i
+            yield i
 
 
-def get_files_recursively(initials, path, filter_reg_exps=None):
-    res = set()
+def get_files_recursively(path, initials=None, filter_reg_exps=None):
+    if not initials:
+        initials = []
+
     if not filter_reg_exps:
         filter_reg_exps = []
 
-    res = res.union(_filter(initials, filter_reg_exps))
-    res = res.union(_filter(glob.iglob(path + '/**', recursive=True),
-                            filter_reg_exps))
+    res = set(initials).union(glob.iglob(path, recursive=True))
+    for i in filter_reg_exps:
+        res = res.difference(set(glob.iglob(f'**/{i}/**', recursive=True)))
 
-    return res
+    return set(_filter(res))
