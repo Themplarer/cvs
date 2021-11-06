@@ -1,41 +1,30 @@
-import glob
 import os
 import re
 
-import utils
-from argsparseerror import ArgsParseError
 from commands.command import Command
 from commitobject import CommitObject
 from diff_finder import write_diffs
 from utils import create_file, read_file
 
 
-def _to_list(elem):
-    return [elem] if elem else []
-
-
 class Commit(Command):
-    help_string = '''Usage: python ./main.py commit [message]
-    message - kind of description for commit, compulsory argument
-    
-    Adds specified files and directories to the index'''
+    _help_string = 'Commits files from index to the current branch'
 
-    def parse_args(self, args):
-        if len(args) != 1:
-            raise ArgsParseError
-        return {'message': args[0]}
+    def configure(self, subparsers):
+        commit = subparsers.add_parser('commit', help=self._help_string)
+        commit.set_defaults(func=self.execute)
+        commit.add_argument('-m', '--message', help='description for commit')
 
     def execute(self, caller, args):
         prev_commit = caller.branches['head']
-        with open('./.goodgit/index') as f:
-            indexed_files = f.read().splitlines()
 
+        indexed_files = read_file('./.goodgit/index')
         if len(indexed_files) == 0:
             print('nothing to commit!')
             return
 
-        commit = CommitObject(args['message'], caller.author,
-                              indexed_files, _to_list(prev_commit))
+        commit = CommitObject(args.message, caller.author, indexed_files,
+                              [prev_commit] if prev_commit else [])
 
         path = f'{caller.dir_path}/commits/{commit.hash}'
         os.mkdir(path)

@@ -8,26 +8,40 @@ def create_file(path):
 
 def read_file(path):
     with open(path) as f:
-        res = f.read().split("\n")
+        res = f.read().splitlines()
 
     return res
 
 
-def _filter(it):
+def write_file(path, lines):
+    with open(path, 'w') as f:
+        f.writelines('\n'.join(lines))
+
+
+def exists(path):
+    return os.path.exists(path)
+
+
+def _filter(it, regexps):
     for i in it:
         if os.path.exists(i) and os.path.isfile(i):
-            yield i
+            res = True
+
+            for j in regexps:
+                if j.match(i.replace('\\', '/')):
+                    res = False
+                    break
+
+            if res:
+                yield i
 
 
-def get_files_recursively(path, initials=None, filter_reg_exps=None):
+def get_files(path, initials=None, regexps=None):
     if not initials:
         initials = []
 
-    if not filter_reg_exps:
-        filter_reg_exps = []
+    if not regexps:
+        regexps = []
 
-    res = set(initials).union(glob.iglob(path, recursive=True))
-    for i in filter_reg_exps:
-        res = res.difference(set(glob.iglob(f'**/{i}/**', recursive=True)))
-
-    return set(_filter(res))
+    return set(_filter(set(initials).union(glob.iglob(path, recursive=True)),
+                       regexps))

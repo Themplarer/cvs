@@ -1,25 +1,20 @@
 import re
 
-from argsparseerror import ArgsParseError
 from commands.command import Command
 
 
 class Checkout(Command):
-    help_string = '''Usage: python ./main.py checkout [branchName]
-    branchName - name of branch to checkout, compulsory argument
-    
-    Switches to that branch'''
+    _help_string = 'Switches to that branch'
 
-    def parse_args(self, args):
-        if len(args) != 1:
-            raise ArgsParseError
-        return {'branchName': i for i in args}
+    def configure(self, subparsers):
+        checkout = subparsers.add_parser('checkout', help=self._help_string)
+        checkout.set_defaults(func=self.execute)
+        checkout.add_argument('branch', help='name for new checkout')
 
     def execute(self, caller, args):
         with open('./.goodgit/main') as f:
             content = f.read()
 
-        content = re.sub(r'(.*?)|', f'{args["branchName"]}|', content)
-
+        content = re.sub(r'(.*?)|', f'{args.branch}|', content)
         with open('./.goodgit/main', 'w') as f:
             f.write(content)

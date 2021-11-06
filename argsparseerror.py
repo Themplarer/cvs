@@ -1,2 +1,0 @@
-class ArgsParseError(Exception):
-    pass

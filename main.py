@@ -1,16 +1,16 @@
-import getpass
-import os
-import re
-from sys import argv
+#!/usr/bin/python3
 
-from argsparseerror import ArgsParseError
+import argparse
+import getpass
+import re
+
 from commands.add import Add
 from commands.branch import Branch
 from commands.checkout import Checkout
 from commands.commit import Commit
-from commands.help import Help
 from commands.init import Init
 from commitobject import CommitObject
+from utils import exists
 
 
 class Main:
@@ -18,14 +18,11 @@ class Main:
     _selected_branch = re.compile(r'(.*?)\|')
     author = getpass.getuser()
     dir_path = './.goodgit'
-    oper_dict = dict(init=Init, help=Help, add=Add, commit=Commit,
-                     branch=Branch, checkout=Checkout)
     selected_branch = "master"
     branches = dict()
 
     def is_initiated(self):
-        return os.path.exists(self.dir_path) and \
-               os.path.exists(self.dir_path + '/main')
+        return exists(self.dir_path) and exists(self.dir_path + '/main')
 
     def get_commit(self, commit_hash):
         if not commit_hash:
@@ -52,28 +49,20 @@ class Main:
                         self.selected_branch = match.group(1)
 
     def main(self):
-        if len(argv) < 2:
-            Help().execute(self, dict())
-        else:
-            if argv[1] != 'init' and not self.is_initiated():
-                print('not a goodgit repository')
-            else:
-                if argv[1] != 'init':
-                    self._fill_branches()
+        if self.is_initiated():
+            self._fill_branches()
 
-                command_name = argv[1]
-                if command_name not in self.oper_dict:
-                    Help().execute(self, dict())
-                else:
-                    command = self.oper_dict[argv[1]]()
-                    args = argv[2:]
-                    try:
-                        parsed_args = command.parse_args(args)
-                        command.execute(self, parsed_args)
-                    except ArgsParseError:
-                        print('Incorrect arguments!')
-                        print(command.help_string)
 
+commands_list = [Init(), Add(), Commit(), Branch(), Checkout()]
 
 if __name__ == '__main__':
-    Main().main()
+    m = Main()
+    m.main()
+    parser = argparse.ArgumentParser(prog='test',
+                                     description='works like the git!')
+    subparsers = parser.add_subparsers(title='goodgit commands', required=True)
+    for i in commands_list:
+        i.configure(subparsers)
+
+    args = parser.parse_args()
+    args.func(m, args)

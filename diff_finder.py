@@ -3,8 +3,7 @@ import re
 from collections import defaultdict
 from difflib import unified_diff
 
-import utils
-from utils import read_file
+from utils import read_file, get_files, write_file
 
 _path_regexp = re.compile(r'.*/commits/\d*[/\\](.*)')
 _lines_regexp = re.compile(r'@@ -(\d+),(\d+) \+.* @@')
@@ -24,15 +23,14 @@ def write_diffs(last_commit, files_after, result_dir):
         before = files_before_dict[file]
         after = read_file(file)
         diff = _remove_endlines(unified_diff(before, after))
-        lines = '\n'.join(diff)
+        lines = list(diff)
 
         if lines:
             file = result_dir + '/' + file
             if '/' in file:
                 os.makedirs(os.path.dirname(file), exist_ok=True)
 
-            with open(file, 'w') as f:
-                f.writelines(lines)
+            write_file(file, lines)
 
 
 def restore_state(commit):
@@ -43,7 +41,7 @@ def restore_state(commit):
     if commit.prev_commits:
         res = restore_state(commit.prev_commits[0])
 
-    for i in utils.get_files_recursively(f'./.goodgit/commits/{commit.hash}'):
+    for i in get_files(f'./.goodgit/commits/{commit.hash}/**'):
         path = _path_regexp.match(i).group(1)
         res[path] = merge_file(res[path], read_file(i))
     return res

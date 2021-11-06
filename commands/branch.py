@@ -1,23 +1,19 @@
-from argsparseerror import ArgsParseError
 from commands.command import Command
 
 
 class Branch(Command):
-    help_string = '''Usage: python ./main.py branch [branchName]
-    branchName - name for new branch, compulsory argument
-    
-    Creates new branch based on head'''
+    _help_string = 'Creates new branch based on head'
 
-    def parse_args(self, args):
-        if len(args) != 1:
-            raise ArgsParseError
-        return {'branchName': i for i in args}
+    def configure(self, subparsers):
+        branch = subparsers.add_parser('branch', help=self._help_string)
+        branch.set_defaults(func=self.execute)
+        branch.add_argument('branch', help='name for new branch')
 
     def execute(self, caller, args):
         head_commit = caller.branches["head"]
 
         with open('./.goodgit/main', 'a') as f:
-            f.write(f'\n{args["branchName"]}:'
-                    f'{"" if not head_commit else head_commit}')
+            f.write(
+                f'\n{args.branch}:{"" if not head_commit else head_commit}')
 
         print('branched')
