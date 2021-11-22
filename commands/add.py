@@ -16,13 +16,14 @@ class Add(Command):
 
     def execute(self, caller, args):
         ignore = set()
-        with open('.gitignore') as f:
-            for line in f.read().splitlines():
-                if line and not self._comments.match(line):
-                    ignore.add(re.compile(
-                        '.*' + line.replace('\\', '/')
-                        .replace('//', '/')
-                        .replace('*', '.*') + '.*'))
+
+        for line in read_file('.gitignore'):
+            if line and not self._comments.match(line):
+                ignore.add(re.compile('.*' +
+                                      line
+                                      .replace('\\', '/')
+                                      .replace('//', '/')
+                                      .replace('*', '.*') + '.*'))
 
         files = get_files(args.path, read_file(caller.dir_path + '/index'),
                           ignore)

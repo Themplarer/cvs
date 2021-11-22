@@ -3,7 +3,7 @@ import re
 
 from commands.command import Command
 from commitobject import CommitObject
-from diff_finder import write_diffs
+from diff_utils import write_diffs
 from utils import create_file, read_file
 
 

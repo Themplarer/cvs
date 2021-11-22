@@ -3,10 +3,10 @@ import re
 from collections import defaultdict
 from difflib import unified_diff
 
-from utils import read_file, get_files, write_file
+from utils import read_file, get_files, write_file, exists
 
 _path_regexp = re.compile(r'.*/commits/\d*[/\\](.*)')
-_lines_regexp = re.compile(r'@@ -(\d+),(\d+) \+.* @@')
+_lines_regexp = re.compile(r'@@ -(\d+)(,(\d*))? \+.* @@')
 
 
 def _remove_endlines(array):
@@ -19,9 +19,13 @@ def write_diffs(last_commit, files_after, result_dir):
     if last_commit:
         files_before_dict = restore_state(last_commit)
 
-    for file in files_after:
+    for file in set(files_before_dict.keys()).union(files_after):
         before = files_before_dict[file]
-        after = read_file(file)
+
+        after = []
+        if exists(file):
+            after = read_file(file)
+
         diff = _remove_endlines(unified_diff(before, after))
         lines = list(diff)
 
@@ -43,7 +47,9 @@ def restore_state(commit):
 
     for i in get_files(f'./.goodgit/commits/{commit.hash}/**'):
         path = _path_regexp.match(i).group(1)
-        res[path] = merge_file(res[path], read_file(i))
+        file = merge_file(res[path], read_file(i))
+        res[path] = file
+
     return res
 
 
@@ -57,7 +63,9 @@ def merge_file(file, diff):
 
             if match:
                 left_border = int(match.group(1))
-                right_border = int(match.group(2)) + left_border
+                right_border = len(file) + 1
+                if match.group(3):
+                    right_border = int(match.group(3)) + left_border
                 for j in range(line_pointer, left_border):
                     new_file.append(file[j - 1])
                 line_pointer = max(line_pointer, right_border)

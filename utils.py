@@ -8,6 +8,7 @@ def create_file(path):
 
 def read_file(path):
     with open(path) as f:
+        # encoding = "UTF-8"
         res = f.read().splitlines()
 
     return res

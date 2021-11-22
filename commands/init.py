@@ -28,6 +28,7 @@ class Init(Command):
         os.mkdir(caller.dir_path)
         os.chdir(caller.dir_path)
         os.mkdir('./commits')
+        os.mkdir('./stashes')
         create_file('index')
         write_file('main', ['KHOROSHiy_git v.1.0',
                             '__________',

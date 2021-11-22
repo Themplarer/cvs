@@ -8,6 +8,8 @@ from commands.add import Add
 from commands.branch import Branch
 from commands.checkout import Checkout
 from commands.commit import Commit
+from commands.easter_eggs.credits import Credits
+from commands.easter_eggs.joke import Joke
 from commands.init import Init
 from commitobject import CommitObject
 from utils import exists
@@ -54,14 +56,18 @@ class Main:
 
 
 commands_list = [Init(), Add(), Commit(), Branch(), Checkout()]
+easter_eggs_list = [Credits(), Joke()]
 
 if __name__ == '__main__':
     m = Main()
     m.main()
     parser = argparse.ArgumentParser(prog='test',
                                      description='works like the git!')
-    subparsers = parser.add_subparsers(title='goodgit commands', required=True)
+    subparsers = parser.add_subparsers(title='goodgit commands', metavar='')
     for i in commands_list:
+        i.configure(subparsers)
+
+    for i in easter_eggs_list:
         i.configure(subparsers)
 
     args = parser.parse_args()
