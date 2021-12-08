@@ -2,7 +2,7 @@ import random
 from os import chdir
 
 from commands.command import Command
-from utils import exists, get_files, read_file
+from utils.file_utils import exists, get_files, read_file
 
 
 class Joke(Command):

@@ -1,6 +1,7 @@
-import os
 import re
 from datetime import datetime
+
+from utils.file_utils import get_files
 
 _parse_common = re.compile(r'\["(.*)" "(.*)" "(.*)" "(.*)"]')
 
@@ -14,7 +15,7 @@ class CommitObject:
                  commit_hash=None):
         self.message = message
         self.author = author
-        self.file_names = file_names
+        self.file_names = set(file_names)
         self.prev_commits = prev_commits if prev_commits else list()
         self.time = datetime.now()
         self.hash = commit_hash
@@ -29,9 +30,12 @@ class CommitObject:
     @staticmethod
     def parse(string, caller):
         cmp = _parse_common.match(string).groups()
+        commit_folder = f'./.goodgit/commits/{cmp[2]}/'
+        files = map(lambda x: x.replace(commit_folder, ''),
+                    get_files(f'{commit_folder}**'))
         commit = CommitObject(cmp[0],
                               cmp[1],
-                              os.listdir('./.goodgit/commits/' + cmp[2]),
+                              files,
                               list(map(caller.get_commit, cmp[3].split())),
                               cmp[2])
 

@@ -3,8 +3,8 @@ import re
 
 from commands.command import Command
 from commitobject import CommitObject
-from diff_utils import write_diffs
-from utils import create_file, read_file
+from utils.diff_utils import write_diffs
+from utils.file_utils import create_file, read_file
 
 
 class Commit(Command):

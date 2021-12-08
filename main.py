@@ -11,8 +11,9 @@ from commands.commit import Commit
 from commands.easter_eggs.credits import Credits
 from commands.easter_eggs.joke import Joke
 from commands.init import Init
+from commands.status import Status
 from commitobject import CommitObject
-from utils import exists
+from utils.file_utils import exists
 
 
 class Main:
@@ -55,14 +56,14 @@ class Main:
             self._fill_branches()
 
 
-commands_list = [Init(), Add(), Commit(), Branch(), Checkout()]
+commands_list = [Init(), Add(), Commit(), Branch(), Checkout(), Status()]
 easter_eggs_list = [Credits(), Joke()]
 
-if __name__ == '__main__':
+
+def main():
     m = Main()
     m.main()
-    parser = argparse.ArgumentParser(prog='test',
-                                     description='works like the git!')
+    parser = argparse.ArgumentParser(description='works like the git!')
     subparsers = parser.add_subparsers(title='goodgit commands', metavar='')
     for i in commands_list:
         i.configure(subparsers)
@@ -71,4 +72,11 @@ if __name__ == '__main__':
         i.configure(subparsers)
 
     args = parser.parse_args()
-    args.func(m, args)
+    if hasattr(args, 'func'):
+        args.func(m, args)
+    else:
+        parser.print_help()
+
+
+if __name__ == '__main__':
+    main()

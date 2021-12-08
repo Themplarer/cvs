@@ -1,6 +1,6 @@
 import os
 from commands.command import Command
-from utils import create_file, exists, write_file
+from utils.file_utils import create_file, exists, write_file
 
 
 class Init(Command):

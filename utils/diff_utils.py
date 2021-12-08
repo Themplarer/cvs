@@ -3,7 +3,7 @@ import re
 from collections import defaultdict
 from difflib import unified_diff
 
-from utils import read_file, get_files, write_file, exists
+from utils.file_utils import read_file, get_files, write_file, exists
 
 _path_regexp = re.compile(r'.*/commits/\d*[/\\](.*)')
 _lines_regexp = re.compile(r'@@ -(\d+)(,(\d*))? \+.* @@')
@@ -15,26 +15,26 @@ def _remove_endlines(array):
 
 
 def write_diffs(last_commit, files_after, result_dir):
+    for file, diff in get_diffs(last_commit, files_after).items():
+        if diff:
+            file = f"{result_dir}/{file}"
+            os.makedirs(os.path.dirname(file), exist_ok=True)
+            write_file(file, diff)
+
+
+def get_diffs(last_commit, files_after):
     files_before_dict = defaultdict(lambda: [])
     if last_commit:
         files_before_dict = restore_state(last_commit)
 
     for file in set(files_before_dict.keys()).union(files_after):
         before = files_before_dict[file]
-
-        after = []
-        if exists(file):
-            after = read_file(file)
+        after = read_file(file) if exists(file) else []
 
         diff = _remove_endlines(unified_diff(before, after))
-        lines = list(diff)
+        files_before_dict[file] = list(diff)
 
-        if lines:
-            file = result_dir + '/' + file
-            if '/' in file:
-                os.makedirs(os.path.dirname(file), exist_ok=True)
-
-            write_file(file, lines)
+    return files_before_dict
 
 
 def restore_state(commit):
