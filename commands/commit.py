@@ -1,10 +1,10 @@
-import os
 import re
+from pathlib import Path
 
 from commands.command import Command
-from commitobject import CommitObject
-from utils.diff_utils import write_diffs
-from utils.file_utils import create_file, read_file
+from commitobject import CommitObject, compute_commit_hash
+from utils.diff_utils import write_diffs, get_diffs
+from utils.file_utils import read_file
 
 
 class Commit(Command):
@@ -15,34 +15,38 @@ class Commit(Command):
         commit.set_defaults(func=self.execute)
         commit.add_argument('-m', '--message', help='description for commit')
 
-    def execute(self, caller, args):
-        prev_commit = caller.branches['head']
+    def execute(self, repository, args):
+        prev_commit = repository.branches['head']
+        indexed_files = [Path(i) for i in
+                         read_file(repository.dir_path / 'index')]
 
-        indexed_files = read_file('./.goodgit/index')
-        if len(indexed_files) == 0:
+        diffs = get_diffs(prev_commit, indexed_files)
+
+        if len(indexed_files) == 0 or not any(diffs.values()):
             print('nothing to commit!')
             return
 
-        commit = CommitObject(args.message, caller.author, indexed_files,
-                              [prev_commit] if prev_commit else [])
+        commit = CommitObject(args.message, repository.author, indexed_files,
+                              [prev_commit] if prev_commit else [],
+                              compute_commit_hash(diffs))
 
-        path = f'{caller.dir_path}/commits/{commit.hash}'
-        os.mkdir(path)
-        write_diffs(prev_commit, indexed_files, path)
+        path = repository.dir_path / 'commits' / str(commit.hash)
+        path.mkdir()
+        write_diffs(diffs, path)
 
-        with open('./.goodgit/main') as f:
+        with repository.main_file_path.open() as f:
             content = f.read()
 
-        with open(path + '_info', 'w') as f:
+        with open(str(path) + '_info', 'w') as f:
             f.write(str(commit))
 
-        content = re.sub(rf'{caller.selected_branch}:.*',
-                         f'{caller.selected_branch}:{commit.hash}', content)
-        content = re.sub(r'head:.*\n', f'head:{commit.hash}\n', content)
+        content = re.sub(rf'{repository.selected_branch}:.*($|\n)',
+                         rf'{repository.selected_branch}:{commit.hash}\1',
+                         content)
+        content = re.sub(r'head:.*($|\n)', rf'head:{commit.hash}\1', content)
 
-        with open('./.goodgit/main', 'w') as f:
+        with repository.main_file_path.open('w') as f:
             f.write(content)
 
-        create_file('./.goodgit/index')
-
+        Path('.goodgit/index').write_text('')
         print(commit.hash)

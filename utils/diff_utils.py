@@ -1,9 +1,9 @@
-import os
 import re
 from collections import defaultdict
 from difflib import unified_diff
+from pathlib import Path
 
-from utils.file_utils import read_file, get_files, write_file, exists
+from utils.file_utils import read_file, get_files, write_file
 
 _path_regexp = re.compile(r'.*/commits/\d*[/\\](.*)')
 _lines_regexp = re.compile(r'@@ -(\d+)(,(\d*))? \+.* @@')
@@ -14,11 +14,11 @@ def _remove_endlines(array):
         yield i.strip('\n')
 
 
-def write_diffs(last_commit, files_after, result_dir):
-    for file, diff in get_diffs(last_commit, files_after).items():
+def write_diffs(diffs_dict, result_dir):
+    for file, diff in diffs_dict.items():
         if diff:
-            file = f"{result_dir}/{file}"
-            os.makedirs(os.path.dirname(file), exist_ok=True)
+            file = result_dir / file
+            file.parent.mkdir(parents=True, exist_ok=True)
             write_file(file, diff)
 
 
@@ -29,7 +29,7 @@ def get_diffs(last_commit, files_after):
 
     for file in set(files_before_dict.keys()).union(files_after):
         before = files_before_dict[file]
-        after = read_file(file) if exists(file) else []
+        after = read_file(file) if file.exists() else []
 
         diff = _remove_endlines(unified_diff(before, after))
         files_before_dict[file] = list(diff)
@@ -45,10 +45,9 @@ def restore_state(commit):
     if commit.prev_commits:
         res = restore_state(commit.prev_commits[0])
 
-    for i in get_files(f'./.goodgit/commits/{commit.hash}/**'):
-        path = _path_regexp.match(i).group(1)
-        file = merge_file(res[path], read_file(i))
-        res[path] = file
+    for i in get_files('*', Path(f'.goodgit/commits/{commit.hash}')):
+        path = Path(_path_regexp.match(i.as_posix()).group(1))
+        res[path] = merge_file(res[path], read_file(i))
 
     return res
 

@@ -9,11 +9,16 @@ class Branch(Command):
         branch.set_defaults(func=self.execute)
         branch.add_argument('branch', help='name for new branch')
 
-    def execute(self, caller, args):
-        head_commit = caller.branches["head"]
+    def execute(self, repository, args):
+        branch = args.branch
+        if repository.selected_branch == branch:
+            print('this branch has already existed!')
+            return
 
-        with open('./.goodgit/main', 'a') as f:
-            f.write(
-                f'\n{args.branch}:{"" if not head_commit else head_commit}')
+        head_commit = repository.branches['head']
+        head = head_commit if head_commit else ''
+
+        with repository.main_file_path.open('a') as f:
+            f.write(f'\n{branch}:{head}')
 
         print('branched')

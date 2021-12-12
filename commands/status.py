@@ -10,40 +10,41 @@ class Status(Command):
         status = subparsers.add_parser('status', help=self._help_string)
         status.set_defaults(func=self.execute)
 
-    def execute(self, caller, args):
-        last_commit = caller.branches["head"]
+    def execute(self, repository, args):
+        last_commit = repository.branches['head']
         before_files = restore_state(last_commit)
-        indexed_files = get_files('**/*', filter_by_gitignore=True)
+        indexed_files = get_files('*', filter_by_gitignore=True)
         diffs = get_diffs(last_commit, indexed_files)
+        printed_header = False
+        used = set()
 
-        deleted = set()
         for i in before_files:
             if i not in indexed_files:
-                deleted.add(i)
-
-        if deleted:
-            print('Deleted files:')
-            for i in deleted:
+                if not printed_header:
+                    print('Deleted files:')
+                    printed_header = True
+                used.add(i)
                 print('   ', i)
+
+        if printed_header:
             print()
 
-        added = set()
+        printed_header = False
         for i in indexed_files:
             if i not in before_files:
-                added.add(i)
-
-        if added:
-            print('Added files:')
-            for i in added:
+                if not printed_header:
+                    print('Added files:')
+                    printed_header = True
+                used.add(i)
                 print('   ', i)
+
+        if printed_header:
             print()
 
-        modified = set()
         for file, diff in diffs.items():
-            if diff and file not in added and file not in deleted:
-                modified.add(file)
+            if diff and file not in used:
+                if not printed_header:
+                    print('Modified files:')
+                    printed_header = True
 
-        if modified:
-            print('Modified files:')
-            for i in modified:
-                print('   ', i)
+                print('   ', file)

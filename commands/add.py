@@ -1,3 +1,5 @@
+from pathlib import Path
+
 from utils.file_utils import read_file, get_files, write_file
 from commands.command import Command
 
@@ -11,8 +13,10 @@ class Add(Command):
         add.add_argument('path',
                          help='kind of filter for directories and files')
 
-    def execute(self, caller, args):
-        files = get_files(args.path, read_file(caller.dir_path + '/index'),
-                          True)
-        write_file(caller.dir_path + '/index', files)
+    def execute(self, repository, args):
+        index_path = repository.dir_path / 'index'
+        initial_files = [Path(i) for i in read_file(index_path)]
+        files = (i.as_posix() for i in
+                 get_files(args.path, '.', initial_files, True))
+        write_file(index_path, files)
         print('added')

@@ -5,7 +5,7 @@ class Credits(Command):
     def configure(self, subparsers):
         subparsers.add_parser('credits').set_defaults(func=self.execute)
 
-    def execute(self, caller, args):
+    def execute(self, repository, args):
         print('''
 KHOROSHiy_git v.1.0
 Copyright (c) 2021 Evgeny Khoroshavin (github.com/Themplarer)

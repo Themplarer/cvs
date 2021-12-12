@@ -1,11 +1,12 @@
-import os
+from pathlib import Path
+
 from commands.command import Command
-from utils.file_utils import create_file, exists, write_file
+from utils.file_utils import write_file
 
 
 class Init(Command):
     _help_string = 'Creates files and directories for internal purposes. ' \
-                   'Starts at path directory if specified or at current ' \
+                   'Starts at `path` directory if specified or at current ' \
                    'directory'
 
     def configure(self, subparsers):
@@ -13,27 +14,21 @@ class Init(Command):
         init.set_defaults(func=self.execute)
         init.add_argument('-p', '--path', help='directory path')
 
-    def execute(self, caller, args):
-        if caller.is_initiated():
-            print('cvs has already been initiated!')
+    def execute(self, repository, args):
+        if repository.is_initiated:
+            print('goodgit has already been initiated!')
             return
 
-        if not exists('.gitignore'):
-            create_file('.gitignore')
-
-        path = args.path
-        if path:
-            os.chdir(path)
-
-        os.mkdir(caller.dir_path)
-        os.chdir(caller.dir_path)
-        os.mkdir('./commits')
-        os.mkdir('./stashes')
-        create_file('index')
-        write_file('main', ['KHOROSHiy_git v.1.0',
-                            '__________',
-                            'master|',
-                            '__________',
-                            'head:',
-                            'master:'])
+        Path('.gitignore').touch(exist_ok=True)
+        path = Path(args.path if args.path else '.') / repository.dir_path
+        path.mkdir(exist_ok=True)
+        (path / 'commits').mkdir()
+        (path / 'stashes').mkdir()
+        (path / 'index').touch()
+        write_file(path / 'main', ['KHOROSHiy_git v.1.0',
+                                   '__________',
+                                   'master|',
+                                   '__________',
+                                   'head:',
+                                   'master:'])
         print('initiated')
