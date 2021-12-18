@@ -1,5 +1,3 @@
-import re
-
 from commands.command import Command
 
 
@@ -16,12 +14,5 @@ class Checkout(Command):
             print('there is no such branch!')
             return
 
-        with repository.main_file_path.open() as f:
-            content = f.read()
-
-        content = re.sub(r'(.*?)|', f'{args.branch}|', content)
-        content = re.sub(r'head:.*^',
-                         f'head:{repository.branches[args.branch].hash}',
-                         content)
-        with repository.main_file_path.open('w') as f:
-            f.write(content)
+        repository.selected_branch = args.branch
+        print('checked out branch', args.branch)

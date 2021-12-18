@@ -1,7 +1,6 @@
 from pathlib import Path
 
 from commands.command import Command
-from utils.file_utils import write_file
 
 
 class Init(Command):
@@ -25,10 +24,7 @@ class Init(Command):
         (path / 'commits').mkdir()
         (path / 'stashes').mkdir()
         (path / 'index').touch()
-        write_file(path / 'main', ['KHOROSHiy_git v.1.0',
-                                   '__________',
-                                   'master|',
-                                   '__________',
-                                   'head:',
-                                   'master:'])
+
+        repository.branches['master'] = None
+        repository.branches['head'] = None
         print('initiated')

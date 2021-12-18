@@ -1,4 +1,3 @@
-import re
 from pathlib import Path
 
 from commands.command import Command
@@ -34,19 +33,11 @@ class Commit(Command):
         path.mkdir()
         write_diffs(diffs, path)
 
-        with repository.main_file_path.open() as f:
-            content = f.read()
-
         with open(str(path) + '_info', 'w') as f:
             f.write(str(commit))
 
-        content = re.sub(rf'{repository.selected_branch}:.*($|\n)',
-                         rf'{repository.selected_branch}:{commit.hash}\1',
-                         content)
-        content = re.sub(r'head:.*($|\n)', rf'head:{commit.hash}\1', content)
-
-        with repository.main_file_path.open('w') as f:
-            f.write(content)
+        repository.branches[repository.selected_branch] = commit
+        repository.branches['head'] = commit
 
         Path('.goodgit/index').write_text('')
         print(commit.hash)

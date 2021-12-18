@@ -36,14 +36,14 @@ class CommitObject:
                f'"{_get_commit_hashes_str(self.prev_commits)}"'
 
     @staticmethod
-    def parse(string, repository):
+    def parse(string, get_commit_func):
         cmp = _parse_common.match(string).groups()
-        commit_folder = pathlib.Path(f'./.goodgit/commits/{cmp[2]}')
+        commit_folder = pathlib.Path('.goodgit/commits') / cmp[2]
         files = get_files('*', commit_folder)
         commit = CommitObject(cmp[0],
                               cmp[1],
                               files,
-                              list(map(repository.get_commit, cmp[4].split())),
+                              list(map(get_commit_func, cmp[4].split())),
                               cmp[2],
                               datetime.strptime(cmp[3], _format))
 

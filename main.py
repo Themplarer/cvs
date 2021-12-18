@@ -10,6 +10,7 @@ from commands.easter_eggs.credits import Credits
 from commands.easter_eggs.joke import Joke
 from commands.init import Init
 from commands.status import Status
+from commands.tag import Tag
 from repository import Repository
 
 
@@ -17,7 +18,8 @@ def main():
     parser = argparse.ArgumentParser(description='works like the git!')
     subparsers = parser.add_subparsers(title='goodgit commands', metavar='')
 
-    commands_list = [Init(), Add(), Commit(), Branch(), Checkout(), Status()]
+    commands_list = [Init(), Add(), Commit(), Branch(), Checkout(), Status(),
+                     Tag()]
     for i in commands_list:
         i.configure(subparsers)
 
@@ -27,7 +29,9 @@ def main():
 
     args = parser.parse_args()
     if hasattr(args, 'func'):
-        args.func(Repository(), args)
+        r = Repository()
+        args.func(r, args)
+        r.save_main_file()
     else:
         parser.print_help()
 
