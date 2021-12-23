@@ -22,24 +22,18 @@ def write_diffs(diffs_dict, result_dir):
             write_file(file, diff)
 
 
-def get_diffs(last_commit, files_after):
-    files_before_dict = defaultdict(lambda: [])
-    if last_commit:
-        files_before_dict = restore_state(last_commit)
+def get_diffs(files_before, files_after):
+    for file in set(files_before.keys()).union(files_after.keys()):
+        diff = _remove_endlines(unified_diff(files_before[file],
+                                             files_after[file]))
+        files_before[file] = list(diff)
 
-    for file in set(files_before_dict.keys()).union(files_after):
-        before = files_before_dict[file]
-        after = read_file(file) if file.exists() else []
-
-        diff = _remove_endlines(unified_diff(before, after))
-        files_before_dict[file] = list(diff)
-
-    return files_before_dict
+    return files_before
 
 
 def restore_state(commit):
     if not commit:
-        return []
+        return dict()
 
     res = defaultdict(lambda: [])
     if commit.prev_commits:

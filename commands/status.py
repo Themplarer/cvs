@@ -1,5 +1,7 @@
+from collections import defaultdict
+
 from utils.diff_utils import get_diffs, restore_state
-from utils.file_utils import get_files
+from utils.file_utils import get_files, read_file
 from commands.command import Command
 
 
@@ -14,7 +16,12 @@ class Status(Command):
         last_commit = repository.branches['head']
         before_files = restore_state(last_commit)
         indexed_files = get_files('*', filter_by_gitignore=True)
-        diffs = get_diffs(last_commit, indexed_files)
+        files_after = defaultdict()
+
+        for i in indexed_files:
+            files_after[i] = read_file(i)
+
+        diffs = get_diffs(before_files, files_after)
         printed_header = False
         used = set()
 

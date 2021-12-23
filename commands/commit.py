@@ -1,8 +1,9 @@
+from collections import defaultdict
 from pathlib import Path
 
 from commands.command import Command
 from commitobject import CommitObject, compute_commit_hash
-from utils.diff_utils import write_diffs, get_diffs
+from utils.diff_utils import write_diffs, get_diffs, restore_state
 from utils.file_utils import read_file
 
 
@@ -15,12 +16,19 @@ class Commit(Command):
         commit.add_argument('-m', '--message', help='description for commit')
 
     def execute(self, repository, args):
+        if not repository.is_selected_branch:
+            print('it\'s impossible to commit to this pointer! '
+                  'checkout branch before')
+
         prev_commit = repository.branches['head']
-        indexed_files = [Path(i) for i in
-                         read_file(repository.dir_path / 'index')]
+        indexed_files = list()
+        files_after = defaultdict()
+        for i in read_file(repository.dir_path / 'index'):
+            p = Path(i)
+            indexed_files.append(p)
+            files_after[p] = read_file(p)
 
-        diffs = get_diffs(prev_commit, indexed_files)
-
+        diffs = get_diffs(restore_state(prev_commit), files_after)
         if len(indexed_files) == 0 or not any(diffs.values()):
             print('nothing to commit!')
             return
