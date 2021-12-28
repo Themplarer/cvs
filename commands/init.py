@@ -19,7 +19,7 @@ class Init(Command):
             return
 
         Path('.gitignore').touch(exist_ok=True)
-        path = Path(args.path if args.path else '.') / repository.dir_path
+        path = Path('.') / repository.dir_path
         path.mkdir(exist_ok=True)
         (path / 'commits').mkdir()
         (path / 'stashes').mkdir()

@@ -19,7 +19,7 @@ class Status(Command):
         files_after = defaultdict()
 
         for i in indexed_files:
-            files_after[i] = read_file(i)
+            files_after[i] = list(read_file(i))
 
         diffs = get_diffs(before_files, files_after)
         printed_header = False

@@ -5,10 +5,15 @@ _comments = re.compile(r'^(#.*)| $')
 
 
 def read_file(path):
-    return path.read_text(encoding='UTF-8').splitlines()
+    """Reads file contents line by line. Returns iterator of splitted lines
+    with no \n or etc"""
+    with path.open(encoding='UTF-8') as f:
+        for i in f:
+            yield i.strip()
 
 
 def write_file(path, lines):
+    """Writes file contents line by line separated by new line"""
     path.write_text('\n'.join(lines), encoding='UTF-8')
 
 
@@ -28,9 +33,11 @@ def _filter(it, regexps):
 
 
 def get_files(mask, path='.', initials=None, filter_by_gitignore=False):
+    """Returns set of files located in the directory recursively. 
+    May append them to the initials and filter by gitignore"""
     regexps = [] if not filter_by_gitignore else _get_gitignore_regexps()
-    files = set(initials if initials else []) | \
-        set(pathlib.Path(path).rglob(mask))
+    files = set(initials if initials else []) | set(
+        pathlib.Path(path).rglob(mask))
     return set(_filter(files, regexps))
 
 

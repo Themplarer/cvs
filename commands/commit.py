@@ -26,7 +26,7 @@ class Commit(Command):
         for i in read_file(repository.dir_path / 'index'):
             p = Path(i)
             indexed_files.append(p)
-            files_after[p] = read_file(p)
+            files_after[p] = list(read_file(p))
 
         diffs = get_diffs(restore_state(prev_commit), files_after)
         if len(indexed_files) == 0 or not any(diffs.values()):

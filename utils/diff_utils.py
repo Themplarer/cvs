@@ -41,7 +41,7 @@ def restore_state(commit):
 
     for i in get_files('*', Path(f'.goodgit/commits/{commit.hash}')):
         path = Path(_path_regexp.match(i.as_posix()).group(1))
-        res[path] = merge_file(res[path], read_file(i))
+        res[path] = merge_file(res[path], list(read_file(i)))
 
     return res
 

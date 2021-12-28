@@ -7,10 +7,12 @@ from utils.main_file_utils import write_main_file, read_main_file
 
 class Repository:
     author = getpass.getuser()
-    dir_path = pathlib.Path('.goodgit')
-    main_file_path = dir_path / 'main'
 
-    def __init__(self):
+    def __init__(self, base_path='.'):
+        self.base_path = pathlib.Path(base_path)
+        self.dir_path = self.base_path / '.goodgit'
+        self.main_file_path = self.dir_path / 'main'
+
         if self.is_initiated:
             self.selected_branch, self.branches, self.tags = read_main_file()
             self.is_selected_branch = self.selected_branch in self.branches
@@ -31,6 +33,9 @@ class Repository:
 
         while len(q):
             commit = q.popleft()
+            if not commit:
+                continue
+
             _hash = str(commit.hash)
             while commit and _hash not in commits:
                 commits[_hash] = commit
