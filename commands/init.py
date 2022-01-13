@@ -4,27 +4,30 @@ from commands.command import Command
 
 
 class Init(Command):
-    _help_string = 'Creates files and directories for internal purposes. ' \
-                   'Starts at `path` directory if specified or at current ' \
-                   'directory'
+    _help_string = 'Creates files and directories for internal purposes'
 
     def configure(self, subparsers):
         init = subparsers.add_parser('init', help=self._help_string)
-        init.set_defaults(func=self.execute)
-        init.add_argument('-p', '--path', help='directory path')
+        init.set_defaults(obj=self)
 
-    def execute(self, repository, args):
+    def execute(self, repository, args, writer):
         if repository.is_initiated:
-            print('goodgit has already been initiated!')
+            writer.write('goodgit has already been initiated!')
             return
 
         Path('.gitignore').touch(exist_ok=True)
-        path = Path('.') / repository.dir_path
-        path.mkdir(exist_ok=True)
-        (path / 'commits').mkdir()
-        (path / 'stashes').mkdir()
-        (path / 'index').touch()
 
+        if repository.dir_path.exists():
+            writer.write('goodgit directory has already existed '
+                         'but it is not initiated! '
+                         'consider checking it out and deleting')
+            return
+
+        for i in [repository.dir_path, repository.dir_path / 'commits',
+                  repository.dir_path / 'stashes']:
+            i.mkdir()
+
+        (repository.dir_path / 'index').touch()
         repository.branches['master'] = None
         repository.branches['head'] = None
-        print('initiated')
+        writer.write('initiated')

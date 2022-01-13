@@ -6,10 +6,11 @@ from utils.file_utils import get_files, read_file
 
 
 def _get_joke(number):
-    jokes_dir_path = Path(f'commands/easter_eggs/jokes')
+    jokes_dir_path = Path('commands') / 'easter_eggs' / 'jokes'
 
-    if not (number and (jokes_dir_path / f'{number}.txt').exists()):
+    if not number or not (jokes_dir_path / f'{number}.txt').exists():
         number = randint(1, len(get_files('*', jokes_dir_path)))
+        print(number)
 
     return number, read_file(jokes_dir_path / f'{number}.txt')
 
@@ -17,11 +18,11 @@ def _get_joke(number):
 class Joke(Command):
     def configure(self, subparsers):
         joke = subparsers.add_parser('joke')
-        joke.set_defaults(func=self.execute)
+        joke.set_defaults(obj=self)
         joke.add_argument('-n', '--number', required=False)
 
-    def execute(self, repository, args):
+    def execute(self, repository, args, writer):
         number, joke = _get_joke(args.number)
-        print('Внимание, анекдот', number)
+        writer.write(f'Внимание, анекдот №{number}')
         for i in joke:
-            print(i)
+            writer.write(i)

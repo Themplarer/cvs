@@ -1,18 +1,18 @@
-import pathlib
 import re
+from pathlib import Path
 
 from commitobject import CommitObject
-from utils.file_utils import write_file
+from utils.file_utils import write_file, read_file
 
 _sep = '__________'
 _branch = re.compile(r'^(.*):(.*)')
 _selected_branch = re.compile(r'(.*?)\|')
 
+_dir_path = Path('.goodgit')
 
-def write_main_file(selected_branch, branches, tags, base_path=None):
-    if not base_path:
-        base_path = pathlib.Path('.')
 
+def write_main_file(selected_branch, branches, tags):
+    """Writes goodgit internal info to the main-file"""
     if selected_branch not in branches:
         raise AttributeError('bad selected branch!')
 
@@ -25,49 +25,45 @@ def write_main_file(selected_branch, branches, tags, base_path=None):
         lines.append(_sep)
 
         for tag, commit in tags.items():
-            commit_hash_str = str(commit.hash) if commit else ''
-            lines.append(f'{tag}:{commit_hash_str}')
+            lines.append(f'{tag}:{commit.hash}')
 
-    write_file(base_path / '.goodgit/main', lines)
-
-
-def _get_commit(commit_hash, base_path=pathlib.Path('.')):
-    if not commit_hash:
-        return None
-
-    with open(base_path / '.goodgit' / 'commits' / f'{commit_hash}_info') as f:
-        s = f.readline()
-
-    return CommitObject.parse(s, _get_commit)
+    write_file(_dir_path / 'main', lines)
 
 
-def read_main_file(base_path=None):
+def read_main_file():
+    """Reads goodgit internal info from main-file"""
+    selected_branch = 'master'
     branches = dict()
     tags = dict()
     sep_counter = 0
+    category = branches
 
-    if not base_path:
-        base_path = pathlib.Path('.')
+    main_file_path = _dir_path / 'main'
+    for line in read_file(main_file_path):
+        if line == _sep:
+            sep_counter += 1
+            if sep_counter > 2:
+                category = tags
+            continue
 
-    main_file_path = base_path / '.goodgit' / 'main'
-    with main_file_path.open(encoding='UTF-8') as f:
-        for line in f:
-            if line.startswith(_sep):
-                sep_counter += 1
+        match = _branch.match(line)
+        if match:
+            commit = None
+            if len(match.groups()) == 2:
+                commit = _get_commit(match.group(2))
 
-            match = _branch.match(line)
+            category[match.group(1)] = commit
+        else:
+            match = _selected_branch.match(line)
             if match:
-                category = branches
-                if sep_counter > 2:
-                    category = tags
-
-                category[match.group(1)] = None
-                if len(match.groups()) == 2:
-                    category[match.group(1)] = _get_commit(match.group(2))
-            else:
-                match = _selected_branch.match(line)
-
-                if match:
-                    selected_branch = match.group(1)
+                selected_branch = match.group(1)
 
     return selected_branch, branches, tags
+
+
+def _get_commit(commit_hash):
+    if not commit_hash:
+        return None
+
+    s = next(read_file(_dir_path / 'commits' / f'{commit_hash}_info'))
+    return CommitObject.parse(s, _get_commit)

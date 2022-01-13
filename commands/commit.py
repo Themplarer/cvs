@@ -12,13 +12,15 @@ class Commit(Command):
 
     def configure(self, subparsers):
         commit = subparsers.add_parser('commit', help=self._help_string)
-        commit.set_defaults(func=self.execute)
+        commit.set_defaults(obj=self)
         commit.add_argument('-m', '--message', help='description for commit')
 
-    def execute(self, repository, args):
+    def execute(self, repository, args, writer):
+        super().execute(repository, args, writer)
+
         if not repository.is_selected_branch:
-            print('it\'s impossible to commit to this pointer! '
-                  'checkout branch before')
+            writer.write('it\'s impossible to commit to this pointer! '
+                         'checkout branch before')
 
         prev_commit = repository.branches['head']
         indexed_files = list()
@@ -30,7 +32,7 @@ class Commit(Command):
 
         diffs = get_diffs(restore_state(prev_commit), files_after)
         if len(indexed_files) == 0 or not any(diffs.values()):
-            print('nothing to commit!')
+            writer.write('nothing to commit!')
             return
 
         commit = CommitObject(args.message, repository.author, indexed_files,
@@ -48,4 +50,4 @@ class Commit(Command):
         repository.branches['head'] = commit
 
         Path('.goodgit/index').write_text('')
-        print(commit.hash)
+        writer.write(commit.hash)

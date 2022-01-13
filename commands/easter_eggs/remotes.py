@@ -7,10 +7,10 @@ class RemoteCommand(Command):
         self._text = 'not available in free version!'
 
     def configure(self, subparsers):
-        subparsers.add_parser(self._name).set_defaults(func=self.execute)
+        subparsers.add_parser(self._name).set_defaults(obj=self)
 
-    def execute(self, repository, args):
-        print(self._text)
+    def execute(self, repository, args, writer):
+        writer.write(self._text)
 
 
 class Push(RemoteCommand):

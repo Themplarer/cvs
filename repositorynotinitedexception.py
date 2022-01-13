@@ -1,0 +1,2 @@
+class RepositoryNotInitedException(Exception):
+    pass

@@ -6,6 +6,6 @@ setup(
     entry_points={
         'console_scripts': [
             'goodgit = main:main'
-        ],
+        ]
     }
 )

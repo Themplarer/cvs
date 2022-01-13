@@ -11,13 +11,16 @@ class Stash(Command):
 
     def configure(self, subparsers):
         stash = subparsers.add_parser('stash', help=self._help_string)
-        stash.set_defaults(func=self.execute)
+        stash.set_defaults(obj=self)
 
-    def execute(self, repository, args):
+    def execute(self, repository, args, writer):
+        super().execute(repository, args, writer)
+
         commit = repository.branches['head']
 
         if not commit:
-            print('impossible to stash anything since there is no commits!')
+            writer.write(
+                'impossible to stash anything since there is no commits!')
             return
 
         # stashes_path = Path('.goodgit') / 'stashes'
@@ -30,4 +33,4 @@ class Stash(Command):
         # diffs = get_diffs(restore_state(commit), files_after)
         # write_diffs(diffs, stashes_path / str(stashes_count + 1))
 
-        print('WORK IN PROGRESS')
+        writer.write('WORK IN PROGRESS')
