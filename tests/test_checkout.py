@@ -18,7 +18,7 @@ class TestCheckout(RepositoryTestCase):
         self._args = namedtuple('CheckoutArgs', ['pointer'])
 
 
-class TestTagNotInited(TestCheckout):
+class TestCheckoutNotInited(TestCheckout):
     def test(self):
         with self.assertRaises(RepositoryNotInitedException):
             Branch().execute(Repository(), self._args('a'), self._writer)
@@ -27,7 +27,7 @@ class TestTagNotInited(TestCheckout):
                                      ('goodgit repository is not initiated!',))
 
 
-class TestTagInited(TestCheckout):
+class TestCheckoutInited(TestCheckout):
     def setUp(self):
         super().setUp()
 

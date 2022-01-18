@@ -12,9 +12,9 @@ def main():
     parser = argparse.ArgumentParser(description='works like the git!')
     subparsers = parser.add_subparsers(title='goodgit commands', metavar='')
 
-    commands_list = [Init(), Add(), Commit(), Branch(), Checkout(), Status(),
-                     Tag(), Stash(), Diff(), Log(), Merge(), CherryPick()]
-    easter_eggs_list = [Credits(), Joke(), Push(), Pull(), Fetch(), Clone()]
+    commands_list = (Init(), Add(), Commit(), Branch(), Checkout(), Status(),
+                     Tag(), Diff(), Log(), Merge())
+    easter_eggs_list = (Credits(), Joke(), Push(), Pull(), Fetch(), Clone())
     for i in commands_list + easter_eggs_list:
         i.configure(subparsers)
 

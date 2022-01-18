@@ -87,9 +87,9 @@ class TestWithInitiatedDir(unittest.TestCase):
         self._p_a_b = self._p_a / 'b'
         self._p_a_b.mkdir()
 
-        self._contents = {self._p_1, self._p_1_file_py, self._p_1_not_a_file_py,
-                          self._p_1_virus_exe, self._p_a, self._p_a_a,
-                          self._p_a_a_a, self._p_a_b}
+        self._contents = {self._p_1, self._p_1_file_py,
+                          self._p_1_not_a_file_py, self._p_1_virus_exe,
+                          self._p_a, self._p_a_a, self._p_a_a_a, self._p_a_b}
 
         self._files = {i for i in self._contents if i.is_file()}
         self._test_files = Path('.').glob('test_*.py')
@@ -114,7 +114,7 @@ class TestFileUtilsRemoveDirectoryRecursivelyNested(TestWithInitiatedDir):
 
 class TestFileUtilsGetFiles(TestWithInitiatedDir):
     def test_all_files(self):
-        self._files.update(self._test_files )
+        self._files.update(self._test_files)
         self._files.update(self._other_files)
         self.assertEqual(get_files('*'), self._files)
 
@@ -128,7 +128,8 @@ class TestFileUtilsGetFiles(TestWithInitiatedDir):
         self._test_all_files_with_initial(Path('test_file_utils.py'))
 
     def test_mask_exe(self):
-        self.assertEqual(get_files('*.exe', path='test'), {self._p_1_virus_exe})
+        self.assertEqual(get_files('*.exe', path='test'),
+                         {self._p_1_virus_exe})
 
     def test_mask_py(self):
         self.assertEqual(get_files('*.py', path='test'),

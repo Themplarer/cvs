@@ -15,7 +15,8 @@ class Init(Command):
             writer.write('goodgit has already been initiated!')
             return
 
-        Path('.gitignore').touch(exist_ok=True)
+        with Path('.gitignore').open(mode='a') as f:
+            f.write('.goodgit\n')
 
         if repository.dir_path.exists():
             writer.write('goodgit directory has already existed '

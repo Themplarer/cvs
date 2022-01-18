@@ -1,9 +1,13 @@
 import unittest
 from pathlib import Path
 
-from tests.testcases import FileRelatedTestCase
-from utils.diff_utils import write_diffs, merge_file, get_diffs
-from utils.file_utils import remove_dir_recursively
+from commands import Init
+from commitobject import CommitObject
+from message_writer import MessageWriter
+from repository import Repository
+from tests.testcases import FileRelatedTestCase, RepositoryTestCase
+from utils.diff_utils import write_diffs, merge_file, get_diffs, restore_state
+from utils.file_utils import remove_dir_recursively, write_file
 
 
 class TestDiffUtilsWriteDiffs(FileRelatedTestCase):
@@ -117,7 +121,8 @@ class TestDiffUtilsMergeFile(unittest.TestCase):
             '+                              "+    author='
             '\"Evgeny Khoroshavin\",",',
             '+                              "+    entry_points={",',
-            '+                              "+        \'console_scripts\': [",',
+            '+                              "+        \'console_scripts\': '
+            '[",',
             '+                              "+            \'goodgit = '
             'main:main\'",',
             '+                              "+        ]",',
@@ -146,7 +151,8 @@ class TestDiffUtilsMergeFile(unittest.TestCase):
                '        self.diffs[_1_txt] = ["--- ",',
                '                              "+++ ",',
                '                              "@@ -0,0 +1,11 @@",',
-               '                              "+from setuptools import setup",',
+               '                              "+from setuptools import '
+               'setup",',
                '                              "+",',
                '                              "+setup(",',
                '                              "+    name=\"goodgit\",",',
@@ -175,7 +181,7 @@ class TestDiffUtilsMergeFile(unittest.TestCase):
         self.assertListEqual(file_after, res)
 
 
-class TestDiffUtilsGetDiffs(unittest.TestCase):
+class TestDiffUtilsGetDiffsRestoreStateSimple(unittest.TestCase):
     def test_create(self):
         before = {'test': []}
         after = {'test': ['123', '213', 'a']}
@@ -206,10 +212,58 @@ class TestDiffUtilsGetDiffs(unittest.TestCase):
 
         self.assertDictEqual(diff, get_diffs(before, after))
 
+    def test_restore_state_simple(self):
+        self.assertDictEqual(restore_state(None), dict())
 
-class TestDiffUtilsRestoreState(unittest.TestCase):
-    def test_simple(self):
-        pass
+
+class TestDiffUtilsRestoreState(RepositoryTestCase):
+    def setUp(self):
+        super().setUp()
+        Init().execute(Repository(), None, MessageWriter())
+
+        _commit1_files = {'1.txt': ('--- ',
+                                    '+++ ',
+                                    '@@ -0,0 +1,3 @@',
+                                    '+123',
+                                    '+213',
+                                    '+a')}
+
+        _commit2_files = {'1.txt': ('--- ',
+                                    '+++ ',
+                                    '@@ -1,3 +1,5 @@',
+                                    ' 123',
+                                    ' 213',
+                                    '-a',
+                                    '+b',
+                                    '+1',
+                                    '+1'),
+                          '2.txt': ('--- ',
+                                    '+++ ',
+                                    '@@ -0,0 +1,1 @@',
+                                    '+лень уже тесты писать')}
+
+        _commits_dir = self._root_path / 'commits'
+        self._commit1 = CommitObject('', '', [], None, 1)
+        self._commit2 = CommitObject('', '', [], [self._commit1], 2)
+
+        for i, j in ((self._commit1, _commit1_files),
+                     (self._commit2, _commit2_files)):
+            commit_dir = _commits_dir / str(i.hash)
+            commit_dir.mkdir()
+
+            for k, l in j.items():
+                write_file(commit_dir / k, l)
+
+            write_file(_commits_dir / f'{i.hash}_info', (str(i),))
+
+    def test_commit_1(self):
+        self.assertDictEqual(restore_state(self._commit1),
+                             {Path('1.txt'): ['123', '213', 'a']})
+
+    def test_commit_2(self):
+        self.assertDictEqual(restore_state(self._commit2),
+                             {Path('1.txt'): ['123', '213', 'b', '1', '1'],
+                              Path('2.txt'): ['лень уже тесты писать']})
 
 
 if __name__ == '__main__':

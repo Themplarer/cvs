@@ -30,7 +30,8 @@ class TestFileMessageWriter(FileRelatedTestCase):
     def test_appends(self):
         self._path.write_text('123\n123\n')
         self._writer.write(1, 2, 3, '\n', 4)
-        self.assertFileContentsEqual(self._path, ('123', '123', '1 2 3 ', ' 4'))
+        self.assertFileContentsEqual(self._path, ('123', '123', '1 2 3 ',
+                                                  ' 4'))
 
 
 if __name__ == '__main__':

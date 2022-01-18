@@ -18,7 +18,7 @@ class Status(RepositoryDependentCommand):
         last_commit = repository.branches['head']
         before_files = restore_state(last_commit)
         indexed_files = get_files('*', filter_by_gitignore=True)
-        files_after = defaultdict()
+        files_after = defaultdict(lambda: [])
 
         for i in indexed_files:
             files_after[i] = list(read_file(i))

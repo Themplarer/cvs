@@ -34,7 +34,6 @@ class Repository:
 
         if self.is_initiated:
             self.selected_branch, self.branches, self.tags = read_main_file()
-            self.is_selected_branch = self.selected_branch in self.branches
             q = deque(self.branches.values())
             q.extend(self.tags.values())
             self.commits = _get_commits(q)
@@ -42,6 +41,10 @@ class Repository:
     @property
     def is_initiated(self):
         return self.dir_path.exists() and self.main_file_path.exists()
+
+    @property
+    def is_selected_branch(self):
+        return self.selected_branch in self.branches
 
     def save_main_file(self):
         write_main_file(self.selected_branch, self.branches, self.tags)

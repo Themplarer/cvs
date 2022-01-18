@@ -20,7 +20,8 @@ class TestBranch(RepositoryTestCase):
 class TestBranchNotInited(TestBranch):
     def test(self):
         with self.assertRaises(RepositoryNotInitedException):
-            Branch().execute(Repository(), self._args('a', False), self._writer)
+            Branch().execute(Repository(), self._args('a', False),
+                             self._writer)
 
         self.assertFileContentsEqual(self._log,
                                      ('goodgit repository is not initiated!',))

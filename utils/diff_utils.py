@@ -21,9 +21,8 @@ def write_diffs(diffs_dict, result_dir):
 def get_diffs(files_before, files_after):
     """Returns dictionary of all diffs between two states of files"""
     for file in set(files_before.keys()).union(files_after.keys()):
-        diff = _remove_endlines(unified_diff(files_before[file],
-                                             files_after[file]))
-        files_before[file] = list(diff)
+        diff = unified_diff(files_before[file], files_after[file])
+        files_before[file] = list(_remove_endlines(diff))
 
     return files_before
 

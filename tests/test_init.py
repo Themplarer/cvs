@@ -2,10 +2,9 @@ import unittest
 from pathlib import Path
 
 from commands import Init
-from message_writer import FileMessageWriter
 from repository import Repository
-from tests.testcases import FileRelatedTestCase, RepositoryTestCase
-from utils.file_utils import remove_dir_recursively, write_file
+from tests.testcases import RepositoryTestCase
+from utils.file_utils import write_file
 from utils.main_file_utils import write_main_file
 
 
@@ -36,7 +35,8 @@ class TestInitForNotInited(TestInit):
         self.assertFileContentsEqual(self._log,
                                      ('goodgit directory has already existed '
                                       'but it is not initiated! '
-                                      'consider checking it out and deleting',))
+                                      'consider checking it out and deleting',
+                                      ))
 
 
 class TestInitForInited(TestInit):

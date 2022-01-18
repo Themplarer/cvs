@@ -21,7 +21,8 @@ class CommandsTestCase(FileRelatedTestCase):
         self._writer = FileMessageWriter(self._log)
 
     def tearDown(self):
-        self._log.unlink()
+        if self._log.exists():
+            self._log.unlink()
 
 
 class RepositoryTestCase(CommandsTestCase):
@@ -32,5 +33,8 @@ class RepositoryTestCase(CommandsTestCase):
 
     def tearDown(self):
         super().tearDown()
-        self._gitignore.unlink(missing_ok=True)
+
+        if self._gitignore.exists():
+            self._gitignore.unlink()
+
         remove_dir_recursively(self._root_path, ok_not_exists=True)

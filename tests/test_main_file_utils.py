@@ -39,14 +39,18 @@ class TestMainFileUtils(unittest.TestCase):
 
         self.assertEqual(a.exception.args[0], 'bad selected branch!')
 
-    def test_write_main_file_with_selected_from_overall_branches(self):
-        lines = ['develop|', _sep, 'master:1', 'head:1', 'develop:12']
+    def test_write_main_file_corrects_head(self):
+        lines = ['develop|', _sep, 'master:1', 'head:12', 'develop:12']
         self._test_write_main_file('develop', self.branches, dict(), lines)
 
+    def test_write_main_file_with_selected_from_overall_branches(self):
+        lines = ['master|', _sep, 'master:1', 'head:1', 'develop:12']
+        self._test_write_main_file('master', self.branches, dict(), lines)
+
     def test_write_main_file_with_tags(self):
-        lines = ['develop|', _sep, 'master:1', 'head:1', 'develop:12', _sep,
+        lines = ['master|', _sep, 'master:1', 'head:1', 'develop:12', _sep,
                  'release-1:1', 'beta-2.0:12']
-        self._test_write_main_file('develop', self.branches, self.tags, lines)
+        self._test_write_main_file('master', self.branches, self.tags, lines)
 
     def test_read_main_file_empty(self):
         branches = {'master': None, 'head': None}
@@ -62,7 +66,8 @@ class TestMainFileUtils(unittest.TestCase):
                  'release-1:1', 'beta-2.0:12']
         self._test_read_main_file(lines, 'develop', self.branches, self.tags)
 
-    def _test_write_main_file(self, selected_branch, branches, tags, lines_add):
+    def _test_write_main_file(self, selected_branch, branches, tags,
+                              lines_add):
         write_main_file(selected_branch, branches, tags)
         lines = ['KHOROSHiy_git v.1.0', _sep] + lines_add
         self.assertMainFileContentsEqual(Path('.goodgit') / 'main', lines)

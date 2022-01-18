@@ -16,6 +16,7 @@ def write_main_file(selected_branch, branches, tags):
     if selected_branch not in branches:
         raise AttributeError('bad selected branch!')
 
+    branches['head'] = branches[selected_branch]
     lines = ['KHOROSHiy_git v.1.0', _sep, selected_branch + '|', _sep]
     for branch, commit in branches.items():
         commit_hash_str = str(commit.hash) if commit else ''

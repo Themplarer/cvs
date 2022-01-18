@@ -1,6 +1,6 @@
-import pathlib
 import re
 from datetime import datetime
+from pathlib import Path
 
 from utils.file_utils import get_files
 
@@ -14,10 +14,6 @@ def compute_commit_hash(commit_diffs):
         res += hash(tuple(diffs))
 
     return res % 10 ** 10
-
-
-def _get_commit_hashes_str(commits):
-    return ' '.join(map(lambda c: str(c.hash), commits))
 
 
 class CommitObject:
@@ -38,7 +34,7 @@ class CommitObject:
     def __str__(self):
         return f'"{self.message}" "{self.author}" "{self.hash}" ' \
                f'"{self.time.strftime(_format)}" ' \
-               f'"{_get_commit_hashes_str(self.prev_commits)}"'
+               f'"{" ".join(map(lambda c: str(c.hash), self.prev_commits))}"'
 
     def __eq__(self, other):
         if type(other) != type(self):
@@ -51,7 +47,7 @@ class CommitObject:
     @staticmethod
     def parse(string, get_commit_func):
         cmp = _parse_common.match(string).groups()
-        commit_folder = pathlib.Path('.goodgit') / 'commits' / cmp[2]
+        commit_folder = Path('.goodgit') / 'commits' / cmp[2]
         files = get_files('*', commit_folder)
         commit = CommitObject(cmp[0],
                               cmp[1],
